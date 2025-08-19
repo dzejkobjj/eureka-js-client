@@ -1,6 +1,6 @@
 import request from 'request';
 import async from 'async';
-import Logger from './Logger';
+import Logger from './Logger.js';
 
 /*
   Utility class for pulling AWS metadata that Eureka requires when

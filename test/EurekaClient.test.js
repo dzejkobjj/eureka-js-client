@@ -1,14 +1,15 @@
 /* eslint-disable no-unused-expressions, max-len */
 import sinon from 'sinon';
-import chai, { expect } from 'chai';
+import chai from 'chai';
+const { expect } = chai;
 import sinonChai from 'sinon-chai';
 import request from 'request';
 import { EventEmitter } from 'events';
 import { join } from 'path';
-import merge from 'lodash/merge';
+import merge from 'lodash/merge.js';
 
-import Eureka from '../src/EurekaClient';
-import DnsClusterResolver from '../src/DnsClusterResolver';
+import Eureka from '../src/EurekaClient.js';
+import DnsClusterResolver from '../src/DnsClusterResolver.js';
 
 chai.use(sinonChai);
 

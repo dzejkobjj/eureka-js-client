@@ -1,5 +1,6 @@
 import sinon from 'sinon';
-import { expect } from 'chai';
+import chai from 'chai';
+const { expect } = chai;
 import Logger from '../src/Logger.js';
 
 const DEFAULT_LEVEL = 30;
