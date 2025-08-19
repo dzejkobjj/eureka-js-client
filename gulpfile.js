@@ -1,9 +1,9 @@
-const gulp = require('gulp');
-const mocha = require('gulp-mocha');
-const eslint = require('gulp-eslint');
-const env = require('gulp-env');
-const request = require('request');
-const { spawn, exec } = require('child_process');
+import gulp from 'gulp';
+import mocha from 'gulp-mocha';
+import eslint from 'gulp-eslint';
+import env from 'gulp-env';
+import request from 'request';
+import { spawn, exec } from 'child_process';
 
 gulp.task('build', () => (
   gulp.src('src/**/*.js')
