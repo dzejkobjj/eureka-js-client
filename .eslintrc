@@ -1,10 +1,30 @@
 {
-  "extends": "airbnb-base",
-  "rules": {
-    "no-param-reassign": [2, {"props": false}],
-    "consistent-return": 0
-  },
   "env": {
+    "browser": false,
+    "es6": true,
+    "node": true,
     "mocha": true
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "plugins": [
+    "import"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-param-reassign": ["error", {"props": false}],
+    "consistent-return": "off",
+    "no-console": "off",
+    "import/no-unresolved": "error",
+    "import/named": "error",
+    "import/default": "error",
+    "import/namespace": "error",
+    "import/no-absolute-path": "error",
+    "import/no-self-import": "error",
+    "import/extensions": ["error", "ignorePackages"]
   }
 }
