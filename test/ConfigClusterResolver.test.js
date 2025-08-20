@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-expressions */
-import chai from 'chai';
-const { expect } = chai;
+import { describe, it, expect, beforeEach } from 'vitest';
 import merge from 'lodash/merge.js';
 
 import ConfigClusterResolver from '../src/ConfigClusterResolver.js';

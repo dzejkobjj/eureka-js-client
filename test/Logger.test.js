@@ -1,6 +1,4 @@
-import sinon from 'sinon';
-import chai from 'chai';
-const { expect } = chai;
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Logger from '../src/Logger.js';
 
 const DEFAULT_LEVEL = 30;
@@ -41,13 +39,13 @@ describe('Logger', () => {
 
     it('should only log a message if the log level is higher than the level', () => {
       logger.level(100);
-      const stub = sinon.stub(console, 'error');
+      const stub = vi.spyOn(console, 'error').mockImplementation(() => {});
       logger.error('Some Error');
-      expect(stub.callCount).to.equal(0);
+      expect(stub).toHaveBeenCalledTimes(0);
       logger.level(50);
       logger.error('Other Error');
-      expect(stub.callCount).to.equal(1);
-      stub.restore();
+      expect(stub).toHaveBeenCalledTimes(1);
+      stub.mockRestore();
     });
 
     describe('Log Methods', () => {
@@ -56,34 +54,34 @@ describe('Logger', () => {
         logger.level(-1);
       });
 
-      const stubConsole = method => sinon.stub(console, method);
+      const stubConsole = method => vi.spyOn(console, method).mockImplementation(() => {});
 
       it('should call console.log with debug', () => {
         const stub = stubConsole('log');
         logger.debug('test');
-        expect(stub.callCount).to.equal(1);
-        stub.restore();
+        expect(stub).toHaveBeenCalledTimes(1);
+        stub.mockRestore();
       });
 
       it('should call console.info with info', () => {
         const stub = stubConsole('info');
         logger.info('test');
-        expect(stub.callCount).to.equal(1);
-        stub.restore();
+        expect(stub).toHaveBeenCalledTimes(1);
+        stub.mockRestore();
       });
 
       it('should call console.warn with warn', () => {
         const stub = stubConsole('warn');
         logger.warn('test');
-        expect(stub.callCount).to.equal(1);
-        stub.restore();
+        expect(stub).toHaveBeenCalledTimes(1);
+        stub.mockRestore();
       });
 
       it('should call console.error with error', () => {
         const stub = stubConsole('error');
         logger.error('test');
-        expect(stub.callCount).to.equal(1);
-        stub.restore();
+        expect(stub).toHaveBeenCalledTimes(1);
+        stub.mockRestore();
       });
     });
   });

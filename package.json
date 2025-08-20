@@ -9,7 +9,10 @@
   },
   "scripts": {
     "prepublishOnly": "gulp",
-    "test": "gulp test",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "integration": "gulp test:integration"
   },
   "repository": {
@@ -35,16 +38,12 @@
     "request": "^2.83.0"
   },
   "devDependencies": {
-    "chai": "^3.2.0",
     "eslint": "^8.50.0",
     "eslint-plugin-import": "^2.28.0",
     "gulp": "^4.0.2",
     "gulp-env": "^0.4.0",
     "gulp-eslint": "^6.0.0",
-    "gulp-mocha": "^8.0.0",
-    "nyc": "^15.1.0",
-    "sinon": "^1.15.4",
-    "sinon-chai": "^2.8.0"
+    "vitest": "^3.2.4"
   },
   "greenkeeper": {
     "ignore": [

@@ -1,5 +1,4 @@
 import gulp from 'gulp';
-import mocha from 'gulp-mocha';
 import eslint from 'gulp-eslint';
 import env from 'gulp-env';
 import request from 'request';
@@ -17,15 +16,24 @@ gulp.task('lint', () => (
     .pipe(eslint.failOnError())
 ));
 
-gulp.task('mocha', () => {
+gulp.task('vitest', (cb) => {
   const envs = env.set({
     NODE_ENV: 'test',
   });
-
-  return gulp.src(['test/**/*.js', '!test/integration.test.js'])
-    .pipe(envs)
-    .pipe(mocha())
-    .pipe(envs.reset);
+  
+  const child = spawn('npx', ['vitest', 'run'], {
+    stdio: 'inherit',
+    env: { ...process.env, ...envs.vars }
+  });
+  
+  child.on('close', (code) => {
+    envs.reset();
+    if (code === 0) {
+      cb();
+    } else {
+      cb(new Error(`Vitest failed with code ${code}`));
+    }
+  });
 });
 
 const EUREKA_INIT_TIMEOUT = 60000;
@@ -73,12 +81,21 @@ gulp.task('docker:run', (cb) => {
   });
 });
 
-gulp.task('test:integration', gulp.series('docker:run', () => (
-  gulp.src('test/integration.test.js')
-    .pipe(mocha({ timeout: 120000 }))
-)));
+gulp.task('test:integration', gulp.series('docker:run', (cb) => {
+  const child = spawn('npx', ['vitest', 'run', 'test/integration.test.js', '--testTimeout=120000'], {
+    stdio: 'inherit'
+  });
+  
+  child.on('close', (code) => {
+    if (code === 0) {
+      cb();
+    } else {
+      cb(new Error(`Integration tests failed with code ${code}`));
+    }
+  });
+}));
 
-gulp.task('test', gulp.parallel('lint', 'mocha'));
+gulp.task('test', gulp.parallel('lint', 'vitest'));
 
 gulp.task('test:watch', () => (
   gulp.watch(['src/**/*.js', 'test/**/*.test.js'], gulp.series('test'))

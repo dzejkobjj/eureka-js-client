@@ -1,14 +1,9 @@
 /* eslint-disable no-unused-expressions */
-import sinon from 'sinon';
-import chai from 'chai';
-const { expect } = chai;
-import sinonChai from 'sinon-chai';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import dns from 'dns';
 import merge from 'lodash/merge.js';
 
 import DnsClusterResolver from '../src/DnsClusterResolver.js';
-
-chai.use(sinonChai);
 
 function makeConfig(overrides = {}) {
   const config = {
@@ -41,39 +36,36 @@ describe('DNS Cluster Resolver', () => {
   describe('startClusterRefresh()', () => {
     let dnsResolver;
     let refreshStub;
-    let clock;
+    
     beforeEach(() => {
-      clock = sinon.useFakeTimers();
+      vi.useFakeTimers();
     });
 
     afterEach(() => {
-      dnsResolver.refreshCurrentCluster.restore();
-      clock.restore();
+      vi.restoreAllMocks();
+      vi.useRealTimers();
     });
 
     it('should start cluster refreshes on interval', () => {
       dnsResolver = new DnsClusterResolver(makeConfig({
         eureka: { clusterRefreshInterval: 300000 },
       }));
-      refreshStub = sinon.stub(dnsResolver, 'refreshCurrentCluster');
-      clock.tick(300000);
-      expect(refreshStub).to.have.been.calledOnce;
-      clock.tick(300000);
-      expect(refreshStub).to.have.been.calledTwice;
-      clock.restore();
+      refreshStub = vi.spyOn(dnsResolver, 'refreshCurrentCluster').mockImplementation((cb) => cb && cb());
+      vi.advanceTimersByTime(300000);
+      expect(refreshStub).toHaveBeenCalledOnce();
+      vi.advanceTimersByTime(300000);
+      expect(refreshStub).toHaveBeenCalledTimes(2);
     });
 
     it('should log warning on refresh failure', () => {
       dnsResolver = new DnsClusterResolver(makeConfig({
         eureka: { clusterRefreshInterval: 300000 },
       }));
-      refreshStub = sinon.stub(dnsResolver, 'refreshCurrentCluster');
-      refreshStub.yields(new Error('fail'));
-      clock.tick(300000);
-      expect(refreshStub).to.have.been.calledOnce;
-      clock.tick(300000);
-      expect(refreshStub).to.have.been.calledTwice;
-      clock.restore();
+      refreshStub = vi.spyOn(dnsResolver, 'refreshCurrentCluster').mockImplementation((cb) => cb && cb(new Error('fail')));
+      vi.advanceTimersByTime(300000);
+      expect(refreshStub).toHaveBeenCalledOnce();
+      vi.advanceTimersByTime(300000);
+      expect(refreshStub).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -84,33 +76,33 @@ describe('DNS Cluster Resolver', () => {
     });
 
     afterEach(() => {
-      dnsResolver.resolveClusterHosts.restore();
+      vi.restoreAllMocks();
     });
 
     it('should return base Eureka URL using current cluster host', () => {
-      const resolveHostsStub = sinon.stub(dnsResolver, 'resolveClusterHosts');
-      resolveHostsStub.yields(null, ['a.mydomain.com', 'b.mydomain.com', 'c.mydomain.com']);
+      const resolveHostsStub = vi.spyOn(dnsResolver, 'resolveClusterHosts');
+      resolveHostsStub.mockImplementation((cb) => cb(null, ['a.mydomain.com', 'b.mydomain.com', 'c.mydomain.com']));
       dnsResolver.resolveEurekaUrl((err, eurekaUrl) => {
-        expect(eurekaUrl).to.equal('http://a.mydomain.com:9999/eureka/v2/apps/');
+        expect(eurekaUrl).toBe('http://a.mydomain.com:9999/eureka/v2/apps/');
       });
     });
 
     it('should return base Eureka URL using next cluster host on retry', () => {
-      const resolveHostsStub = sinon.stub(dnsResolver, 'resolveClusterHosts');
-      resolveHostsStub.yields(null, ['a.mydomain.com', 'b.mydomain.com', 'c.mydomain.com']);
+      const resolveHostsStub = vi.spyOn(dnsResolver, 'resolveClusterHosts');
+      resolveHostsStub.mockImplementation((cb) => cb(null, ['a.mydomain.com', 'b.mydomain.com', 'c.mydomain.com']));
       dnsResolver.resolveEurekaUrl((err, eurekaUrl) => {
-        expect(eurekaUrl).to.equal('http://b.mydomain.com:9999/eureka/v2/apps/');
-        expect(dnsResolver.serverList).to.eql(['b.mydomain.com', 'c.mydomain.com',
+        expect(eurekaUrl).toBe('http://b.mydomain.com:9999/eureka/v2/apps/');
+        expect(dnsResolver.serverList).toEqual(['b.mydomain.com', 'c.mydomain.com',
           'a.mydomain.com']);
       }, 1);
     });
 
     it('should return error when resolve fails', () => {
-      const resolveHostsStub = sinon.stub(dnsResolver, 'resolveClusterHosts');
-      resolveHostsStub.yields(new Error('fail'));
+      const resolveHostsStub = vi.spyOn(dnsResolver, 'resolveClusterHosts');
+      resolveHostsStub.mockImplementation((cb) => cb(new Error('fail')));
       dnsResolver.resolveEurekaUrl((err) => {
-        expect(err).to.not.equal(undefined);
-        expect(err.message).to.equal('fail');
+        expect(err).not.toBe(undefined);
+        expect(err.message).toBe('fail');
       });
     });
   });

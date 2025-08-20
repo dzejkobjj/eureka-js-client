@@ -1,5 +1,4 @@
-import chai from 'chai';
-const { expect } = chai;
+import { describe, it, expect } from 'vitest';
 
 import EurekaClient from '../src/EurekaClient.js';
 import EurekaDefault, { Eureka as EurekaNamed } from '../src/index.js';
@@ -9,8 +8,8 @@ import EurekaDefault, { Eureka as EurekaNamed } from '../src/index.js';
 
 describe('index', () => {
   it('should export both a default and a named', () => {
-    expect(EurekaDefault).to.equal(EurekaClient);
-    expect(EurekaDefault).to.equal(EurekaNamed);
+    expect(EurekaDefault).toBe(EurekaClient);
+    expect(EurekaDefault).toBe(EurekaNamed);
   });
 
   // Note: CommonJS compatibility test removed when migrating to ES modules

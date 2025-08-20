@@ -1,8 +1,5 @@
 /* eslint-disable no-unused-expressions, max-len */
-import sinon from 'sinon';
-import chai from 'chai';
-const { expect } = chai;
-import sinonChai from 'sinon-chai';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import request from 'request';
 import { EventEmitter } from 'events';
 import { join, dirname } from 'path';
@@ -15,8 +12,6 @@ import DnsClusterResolver from '../src/DnsClusterResolver.js';
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-chai.use(sinonChai);
 
 function makeConfig(overrides = {}) {
   const config = {
@@ -205,26 +200,23 @@ describe('Eureka client', () => {
     });
 
     afterEach(() => {
-      registerSpy.restore();
-      fetchRegistrySpy.restore();
-      heartbeatsSpy.restore();
-      registryFetchSpy.restore();
+      vi.restoreAllMocks();
     });
 
     it('should call register, fetch registry, startHeartbeat and startRegistryFetches', (done) => {
-      registerSpy = sinon.stub(client, 'register').callsArg(0);
-      fetchRegistrySpy = sinon.stub(client, 'fetchRegistry').callsArg(0);
-      heartbeatsSpy = sinon.stub(client, 'startHeartbeats');
-      registryFetchSpy = sinon.stub(client, 'startRegistryFetches');
-      const eventSpy = sinon.spy();
+      registerSpy = vi.spyOn(client, 'register').mockImplementation((cb) => cb());
+      fetchRegistrySpy = vi.spyOn(client, 'fetchRegistry').mockImplementation((cb) => cb());
+      heartbeatsSpy = vi.spyOn(client, 'startHeartbeats');
+      registryFetchSpy = vi.spyOn(client, 'startRegistryFetches');
+      const eventSpy = vi.fn();
       client.on('started', eventSpy);
 
       client.start(() => {
-        expect(registerSpy).to.have.been.calledOnce;
-        expect(fetchRegistrySpy).to.have.been.calledOnce;
-        expect(heartbeatsSpy).to.have.been.calledOnce;
-        expect(registryFetchSpy).to.have.been.calledOnce;
-        expect(eventSpy).to.have.been.calledOnce;
+        expect(registerSpy).toHaveBeenCalledOnce();
+        expect(fetchRegistrySpy).toHaveBeenCalledOnce();
+        expect(heartbeatsSpy).toHaveBeenCalledOnce();
+        expect(registryFetchSpy).toHaveBeenCalledOnce();
+        expect(eventSpy).toHaveBeenCalledOnce();
         done();
       });
     });
@@ -237,34 +229,34 @@ describe('Eureka client', () => {
       });
       client = new Eureka(config);
 
-      registerSpy = sinon.stub(client, 'register').callsArg(0);
-      fetchRegistrySpy = sinon.stub(client, 'fetchRegistry').callsArg(0);
-      heartbeatsSpy = sinon.stub(client, 'startHeartbeats');
-      registryFetchSpy = sinon.stub(client, 'startRegistryFetches');
-      const eventSpy = sinon.spy();
+      registerSpy = vi.spyOn(client, 'register').mockImplementation((cb) => cb());
+      fetchRegistrySpy = vi.spyOn(client, 'fetchRegistry').mockImplementation((cb) => cb());
+      heartbeatsSpy = vi.spyOn(client, 'startHeartbeats');
+      registryFetchSpy = vi.spyOn(client, 'startRegistryFetches');
+      const eventSpy = vi.fn();
       client.on('started', eventSpy);
 
       client.start(() => {
-        expect(registerSpy).to.not.have.been.called;
-        expect(fetchRegistrySpy).to.have.been.calledOnce;
-        expect(heartbeatsSpy).to.not.have.been.called;
-        expect(registryFetchSpy).to.have.been.calledOnce;
-        expect(eventSpy).to.have.been.calledOnce;
+        expect(registerSpy).not.toHaveBeenCalled();
+        expect(fetchRegistrySpy).toHaveBeenCalledOnce();
+        expect(heartbeatsSpy).not.toHaveBeenCalled();
+        expect(registryFetchSpy).toHaveBeenCalledOnce();
+        expect(eventSpy).toHaveBeenCalledOnce();
         done();
       });
     });
 
     it('should return error on start failure', (done) => {
-      registerSpy = sinon.stub(client, 'register').yields(new Error('fail'));
-      fetchRegistrySpy = sinon.stub(client, 'fetchRegistry').callsArg(0);
-      heartbeatsSpy = sinon.stub(client, 'startHeartbeats');
-      registryFetchSpy = sinon.stub(client, 'startRegistryFetches');
-      const eventSpy = sinon.spy();
+      registerSpy = vi.spyOn(client, 'register').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(new Error('fail')); });
+      fetchRegistrySpy = vi.spyOn(client, 'fetchRegistry').mockImplementation((cb) => cb());
+      heartbeatsSpy = vi.spyOn(client, 'startHeartbeats');
+      registryFetchSpy = vi.spyOn(client, 'startRegistryFetches');
+      const eventSpy = vi.fn();
       client.on('started', eventSpy);
 
       client.start((error) => {
         expect(error).to.match(/fail/);
-        expect(eventSpy).to.not.have.been.called;
+        expect(eventSpy).not.toHaveBeenCalled();
         done();
       });
     });
@@ -278,21 +270,21 @@ describe('Eureka client', () => {
     before(() => {
       config = makeConfig();
       client = new Eureka(config);
-      renewSpy = sinon.stub(client, 'renew');
-      clock = sinon.useFakeTimers();
+      renewSpy = vi.spyOn(client, 'renew');
+      clock = vi.useFakeTimers();
     });
 
     after(() => {
-      renewSpy.restore();
-      clock.restore();
+      renewSpy.mockRestore();
+      vi.useRealTimers();
     });
 
     it('should call renew on interval', () => {
       client.startHeartbeats();
       clock.tick(30000);
-      expect(renewSpy).to.have.been.calledOnce;
+      expect(renewSpy).toHaveBeenCalledOnce();
       clock.tick(30000);
-      expect(renewSpy).to.have.been.calledTwice;
+      expect(renewSpy).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -304,21 +296,21 @@ describe('Eureka client', () => {
     before(() => {
       config = makeConfig();
       client = new Eureka(config);
-      fetchRegistrySpy = sinon.stub(client, 'fetchRegistry');
-      clock = sinon.useFakeTimers();
+      fetchRegistrySpy = vi.spyOn(client, 'fetchRegistry');
+      clock = vi.useFakeTimers();
     });
 
     after(() => {
-      fetchRegistrySpy.restore();
-      clock.restore();
+      fetchRegistrySpy.mockRestore();
+      vi.useRealTimers();
     });
 
     it('should call renew on interval', () => {
       client.startRegistryFetches();
       clock.tick(30000);
-      expect(fetchRegistrySpy).to.have.been.calledOnce;
+      expect(fetchRegistrySpy).toHaveBeenCalledOnce();
       clock.tick(30000);
-      expect(fetchRegistrySpy).to.have.been.calledTwice;
+      expect(fetchRegistrySpy).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -329,19 +321,19 @@ describe('Eureka client', () => {
     beforeEach(() => {
       config = makeConfig();
       client = new Eureka(config);
-      deregisterSpy = sinon.stub(client, 'deregister').callsArg(0);
+      deregisterSpy = vi.spyOn(client, 'deregister').mockImplementation((cb) => cb());
     });
 
     afterEach(() => {
-      deregisterSpy.restore();
+      deregisterSpy.mockRestore();
     });
 
     it('should call deregister', () => {
-      const stopCb = sinon.spy();
+      const stopCb = vi.fn();
       client.stop(stopCb);
 
-      expect(deregisterSpy).to.have.been.calledOnce;
-      expect(stopCb).to.have.been.calledOnce;
+      expect(deregisterSpy).toHaveBeenCalledOnce();
+      expect(stopCb).toHaveBeenCalledOnce();
     });
 
     it('should skip deregister if registration disabled', () => {
@@ -352,11 +344,11 @@ describe('Eureka client', () => {
       });
       client = new Eureka(config);
 
-      const stopCb = sinon.spy();
+      const stopCb = vi.fn();
       client.stop(stopCb);
 
-      expect(deregisterSpy).to.not.have.been.called;
-      expect(stopCb).to.have.been.calledOnce;
+      expect(deregisterSpy).not.toHaveBeenCalled();
+      expect(stopCb).toHaveBeenCalledOnce();
     });
   });
 
@@ -369,22 +361,22 @@ describe('Eureka client', () => {
     });
 
     afterEach(() => {
-      request.post.restore();
+      request.post.mockRestore();
     });
     it('should trigger register event', () => {
-      sinon.stub(request, 'post').yields(null, { statusCode: 204 }, null);
-      const eventSpy = sinon.spy();
+      vi.spyOn(request, 'post').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 204 }, null); });
+      const eventSpy = vi.fn();
       client.on('registered', eventSpy);
       client.register();
-      expect(eventSpy).to.have.been.calledOnce;
+      expect(eventSpy).toHaveBeenCalledOnce();
     });
 
     it('should call register URI', () => {
-      sinon.stub(request, 'post').yields(null, { statusCode: 204 }, null);
-      const registerCb = sinon.spy();
+      vi.spyOn(request, 'post').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 204 }, null); });
+      const registerCb = vi.fn();
       client.register(registerCb);
 
-      expect(request.post).to.have.been.calledWithMatch({
+      expect(request.post).toHaveBeenCalledWith({
         body: {
           instance: {
             app: 'app',
@@ -400,25 +392,25 @@ describe('Eureka client', () => {
         uri: 'app',
       });
 
-      expect(registerCb).to.have.been.calledWithMatch(null);
+      expect(registerCb).toHaveBeenCalledWith(null);
     });
 
     it('should throw error for non-204 response', () => {
-      sinon.stub(request, 'post').yields(null, { statusCode: 500 }, null);
-      const registerCb = sinon.spy();
+      vi.spyOn(request, 'post').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 500 }, null); });
+      const registerCb = vi.fn();
       client.register(registerCb);
 
-      expect(registerCb).to.have.been.calledWithMatch({
+      expect(registerCb).toHaveBeenCalledWith({
         message: 'eureka registration FAILED: status: 500 body: null',
       });
     });
 
     it('should throw error for request error', () => {
-      sinon.stub(request, 'post').yields(new Error('request error'), null, null);
-      const registerCb = sinon.spy();
+      vi.spyOn(request, 'post').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(new Error('request error'))); });
+      const registerCb = vi.fn();
       client.register(registerCb);
 
-      expect(registerCb).to.have.been.calledWithMatch({ message: 'request error' });
+      expect(registerCb).toHaveBeenCalledWith({ message: 'request error' });
     });
   });
 
@@ -431,46 +423,46 @@ describe('Eureka client', () => {
     });
 
     afterEach(() => {
-      request.delete.restore();
+      request.delete.mockRestore();
     });
 
     it('should should trigger deregister event', () => {
-      sinon.stub(request, 'delete').yields(null, { statusCode: 200 }, null);
-      const eventSpy = sinon.spy();
+      vi.spyOn(request, 'delete').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, null); });
+      const eventSpy = vi.fn();
       client.on('deregistered', eventSpy);
       client.register();
       client.deregister();
     });
 
     it('should call deregister URI', () => {
-      sinon.stub(request, 'delete').yields(null, { statusCode: 200 }, null);
-      const deregisterCb = sinon.spy();
+      vi.spyOn(request, 'delete').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, null); });
+      const deregisterCb = vi.fn();
       client.deregister(deregisterCb);
 
-      expect(request.delete).to.have.been.calledWithMatch({
+      expect(request.delete).toHaveBeenCalledWith({
         baseUrl: 'http://127.0.0.1:9999/eureka/v2/apps/',
         uri: 'app/myhost',
       });
 
-      expect(deregisterCb).to.have.been.calledWithMatch(null);
+      expect(deregisterCb).toHaveBeenCalledWith(null);
     });
 
     it('should throw error for non-200 response', () => {
-      sinon.stub(request, 'delete').yields(null, { statusCode: 500 }, null);
-      const deregisterCb = sinon.spy();
+      vi.spyOn(request, 'delete').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 500 }, null); });
+      const deregisterCb = vi.fn();
       client.deregister(deregisterCb);
 
-      expect(deregisterCb).to.have.been.calledWithMatch({
+      expect(deregisterCb).toHaveBeenCalledWith({
         message: 'eureka deregistration FAILED: status: 500 body: null',
       });
     });
 
     it('should throw error for request error', () => {
-      sinon.stub(request, 'delete').yields(new Error('request error'), null, null);
-      const deregisterCb = sinon.spy();
+      vi.spyOn(request, 'delete').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(new Error('request error'))); });
+      const deregisterCb = vi.fn();
       client.deregister(deregisterCb);
 
-      expect(deregisterCb).to.have.been.calledWithMatch({ message: 'request error' });
+      expect(deregisterCb).toHaveBeenCalledWith({ message: 'request error' });
     });
   });
 
@@ -483,39 +475,39 @@ describe('Eureka client', () => {
     });
 
     afterEach(() => {
-      request.put.restore();
+      request.put.mockRestore();
     });
 
     it('should call heartbeat URI', () => {
-      sinon.stub(request, 'put').yields(null, { statusCode: 200 }, null);
+      vi.spyOn(request, 'put').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, null); });
       client.renew();
 
-      expect(request.put).to.have.been.calledWithMatch({
+      expect(request.put).toHaveBeenCalledWith({
         baseUrl: 'http://127.0.0.1:9999/eureka/v2/apps/',
         uri: 'app/myhost',
       });
     });
 
     it('should trigger a heartbeat event', () => {
-      sinon.stub(request, 'put').yields(null, { statusCode: 200 }, null);
-      const eventSpy = sinon.spy();
+      vi.spyOn(request, 'put').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, null); });
+      const eventSpy = vi.fn();
       client.on('heartbeat', eventSpy);
       client.renew();
 
-      expect(eventSpy).to.have.been.calledOnce;
+      expect(eventSpy).toHaveBeenCalledOnce();
     });
 
     it('should re-register on 404', () => {
-      sinon.stub(request, 'put').yields(null, { statusCode: 404 }, null);
-      sinon.stub(request, 'post').yields(null, { statusCode: 204 }, null);
+      vi.spyOn(request, 'put').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 404 }, null); });
+      vi.spyOn(request, 'post').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 204 }, null); });
       client.renew();
 
-      expect(request.put).to.have.been.calledWithMatch({
+      expect(request.put).toHaveBeenCalledWith({
         baseUrl: 'http://127.0.0.1:9999/eureka/v2/apps/',
         uri: 'app/myhost',
       });
 
-      expect(request.post).to.have.been.calledWithMatch({
+      expect(request.post).toHaveBeenCalledWith({
         body: {
           instance: {
             app: 'app',
@@ -536,11 +528,11 @@ describe('Eureka client', () => {
   describe('eureka-client.yml', () => {
     let stub;
     before(() => {
-      stub = sinon.stub(process, 'cwd').returns(__dirname);
+      stub = vi.spyOn(process, 'cwd').mockReturnValue(__dirname);
     });
 
     after(() => {
-      stub.restore();
+      stub.mockRestore();
     });
 
     it('should load the correct', () => {
@@ -693,110 +685,110 @@ describe('Eureka client', () => {
     beforeEach(() => {
       config = makeConfig();
       client = new Eureka(config);
-      sinon.stub(client, 'transformRegistry');
-      sinon.stub(client, 'handleDelta');
+      vi.spyOn(client, 'transformRegistry');
+      vi.spyOn(client, 'handleDelta');
     });
 
     afterEach(() => {
-      request.get.restore();
-      client.transformRegistry.restore();
-      client.handleDelta.restore();
+      request.get.mockRestore();
+      client.transformRegistry.mockRestore();
+      client.handleDelta.mockRestore();
     });
 
     it('should should trigger registryUpdated event', () => {
-      sinon.stub(request, 'get').yields(null, { statusCode: 200 }, null);
-      const eventSpy = sinon.spy();
+      vi.spyOn(request, 'get').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, null); });
+      const eventSpy = vi.fn();
       client.on('registryUpdated', eventSpy);
       client.fetchRegistry();
-      expect(eventSpy).to.have.been.calledOnce;
+      expect(eventSpy).toHaveBeenCalledOnce();
     });
 
     it('should call registry URI', () => {
-      sinon.stub(request, 'get').yields(null, { statusCode: 200 }, null);
-      const registryCb = sinon.spy();
+      vi.spyOn(request, 'get').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, null); });
+      const registryCb = vi.fn();
       client.fetchRegistry(registryCb);
 
-      expect(request.get).to.have.been.calledWithMatch({
+      expect(request.get).toHaveBeenCalledWith({
         baseUrl: 'http://127.0.0.1:9999/eureka/v2/apps/',
         uri: '',
         headers: { Accept: 'application/json' },
       });
 
-      expect(registryCb).to.have.been.calledWithMatch(null);
+      expect(registryCb).toHaveBeenCalledWith(null);
     });
 
     it('should call registry URI for delta', () => {
-      sinon.stub(request, 'get').yields(null, { statusCode: 200 }, '{ "applications": {} }');
-      const registryCb = sinon.spy();
+      vi.spyOn(request, 'get').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, '{ "applications": {} }'); });
+      const registryCb = vi.fn();
       client.config.shouldUseDelta = true;
       client.hasFullRegistry = true;
       client.fetchRegistry(registryCb);
 
-      expect(request.get).to.have.been.calledWithMatch({
+      expect(request.get).toHaveBeenCalledWith({
         baseUrl: 'http://127.0.0.1:9999/eureka/v2/apps/',
         uri: 'delta',
         headers: { Accept: 'application/json' },
       });
 
-      expect(registryCb).to.have.been.calledWithMatch(null);
+      expect(registryCb).toHaveBeenCalledWith(null);
     });
 
     it('should throw error for non-200 response', () => {
-      sinon.stub(request, 'get').yields(null, { statusCode: 500 }, null);
-      const registryCb = sinon.spy();
+      vi.spyOn(request, 'get').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 500 }, null); });
+      const registryCb = vi.fn();
       client.fetchRegistry(registryCb);
 
-      expect(registryCb).to.have.been.calledWithMatch({
+      expect(registryCb).toHaveBeenCalledWith({
         message: 'Unable to retrieve full registry from Eureka server',
       });
     });
 
     it('should throw error for non-200 response for delta', () => {
-      sinon.stub(request, 'get').yields(null, { statusCode: 500 }, null);
-      const registryCb = sinon.spy();
+      vi.spyOn(request, 'get').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 500 }, null); });
+      const registryCb = vi.fn();
       client.config.shouldUseDelta = true;
       client.hasFullRegistry = true;
       client.fetchRegistry(registryCb);
 
-      expect(registryCb).to.have.been.calledWithMatch({
+      expect(registryCb).toHaveBeenCalledWith({
         message: 'Unable to retrieve delta registry from Eureka server',
       });
     });
 
     it('should throw error for request error', () => {
-      sinon.stub(request, 'get').yields(new Error('request error'), null, null);
-      const registryCb = sinon.spy();
+      vi.spyOn(request, 'get').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(new Error('request error'))); });
+      const registryCb = vi.fn();
       client.fetchRegistry(registryCb);
 
-      expect(registryCb).to.have.been.calledWithMatch({ message: 'request error' });
+      expect(registryCb).toHaveBeenCalledWith({ message: 'request error' });
     });
 
     it('should throw error for request error for delta request', () => {
-      sinon.stub(request, 'get').yields(new Error('request error'), null, null);
-      const registryCb = sinon.spy();
+      vi.spyOn(request, 'get').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(new Error('request error'))); });
+      const registryCb = vi.fn();
       client.config.shouldUseDelta = true;
       client.hasFullRegistry = true;
       client.fetchRegistry(registryCb);
 
-      expect(registryCb).to.have.been.calledWithMatch({ message: 'request error' });
+      expect(registryCb).toHaveBeenCalledWith({ message: 'request error' });
     });
 
     it('should throw error on invalid JSON', () => {
-      sinon.stub(request, 'get').yields(null, { statusCode: 200 }, '{ blah');
-      const registryCb = sinon.spy();
+      vi.spyOn(request, 'get').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, '{ blah'); });
+      const registryCb = vi.fn();
       client.fetchRegistry(registryCb);
 
-      expect(registryCb).to.have.been.calledWith(new SyntaxError());
+      expect(registryCb).toHaveBeenCalledWith(new SyntaxError());
     });
 
     it('should throw error on invalid JSON for delta request', () => {
-      sinon.stub(request, 'get').yields(null, { statusCode: 200 }, '{ blah');
-      const registryCb = sinon.spy();
+      vi.spyOn(request, 'get').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, '{ blah'); });
+      const registryCb = vi.fn();
       client.config.shouldUseDelta = true;
       client.hasFullRegistry = true;
       client.fetchRegistry(registryCb);
 
-      expect(registryCb).to.have.been.calledWith(new SyntaxError());
+      expect(registryCb).toHaveBeenCalledWith(new SyntaxError());
     });
   });
 
@@ -969,7 +961,7 @@ describe('Eureka client', () => {
     });
 
     afterEach(() => {
-      client.metadataClient.fetchMetadata.restore();
+      client.metadataClient.fetchMetadata.mockRestore();
     });
 
     it('should update hosts with AWS metadata public host', () => {
@@ -979,9 +971,9 @@ describe('Eureka client', () => {
         eureka: { host: '127.0.0.1', port: 9999 },
       };
       client = new Eureka(config);
-      metadataSpy = sinon.spy();
+      metadataSpy = vi.fn();
 
-      sinon.stub(client.metadataClient, 'fetchMetadata').yields(awsMetadata);
+      vi.spyOn(client.metadataClient, 'fetchMetadata').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(awsMetadata); });
 
       // Act
       client.addInstanceMetadata(metadataSpy);
@@ -999,9 +991,9 @@ describe('Eureka client', () => {
         eureka: { host: '127.0.0.1', port: 9999, preferIpAddress: true },
       };
       client = new Eureka(config);
-      metadataSpy = sinon.spy();
+      metadataSpy = vi.fn();
 
-      sinon.stub(client.metadataClient, 'fetchMetadata').yields(awsMetadata);
+      vi.spyOn(client.metadataClient, 'fetchMetadata').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(awsMetadata); });
 
       // Act
       client.addInstanceMetadata(metadataSpy);
@@ -1019,9 +1011,9 @@ describe('Eureka client', () => {
         eureka: { host: '127.0.0.1', port: 9999, useLocalMetadata: true },
       };
       client = new Eureka(config);
-      metadataSpy = sinon.spy();
+      metadataSpy = vi.fn();
 
-      sinon.stub(client.metadataClient, 'fetchMetadata').yields(awsMetadata);
+      vi.spyOn(client.metadataClient, 'fetchMetadata').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(awsMetadata); });
 
       // Act
       client.addInstanceMetadata(metadataSpy);
@@ -1040,9 +1032,9 @@ describe('Eureka client', () => {
         eureka: { host: '127.0.0.1', port: 9999, useLocalMetadata: true, preferIpAddress: true },
       };
       client = new Eureka(config);
-      metadataSpy = sinon.spy();
+      metadataSpy = vi.fn();
 
-      sinon.stub(client.metadataClient, 'fetchMetadata').yields(awsMetadata);
+      vi.spyOn(client.metadataClient, 'fetchMetadata').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(awsMetadata); });
 
       // Act
       client.addInstanceMetadata(metadataSpy);
@@ -1058,31 +1050,31 @@ describe('Eureka client', () => {
     beforeEach(() => {});
 
     afterEach(() => {
-      if (request.get.restore) request.get.restore();
+      if (request.get.restore) request.get.mockRestore();
     });
 
     it('should call requestMiddleware with request options', () => {
       const overrides = {
-        requestMiddleware: sinon.spy((opts, done) => done(opts)),
+        requestMiddleware: vi.fn((opts, done) => done(opts)),
       };
       const config = makeConfig(overrides);
       const client = new Eureka(config);
-      sinon.stub(request, 'get').yields(null, { statusCode: 200 }, null);
+      vi.spyOn(request, 'get').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, null); });
       client.eurekaRequest({}, (error) => {
         expect(Boolean(error)).to.equal(false);
         expect(overrides.requestMiddleware).to.be.calledOnce;
-        expect(overrides.requestMiddleware.args[0][0]).to.be.an('object');
+        expect(overrides.requestMiddleware.mock.calls[0][0]).to.be.an('object');
       });
     });
     it('should catch an error in requestMiddleware', () => {
       const overrides = {
-        requestMiddleware: sinon.spy((opts, done) => {
+        requestMiddleware: vi.fn((opts, done) => {
           done();
         }),
       };
       const config = makeConfig(overrides);
       const client = new Eureka(config);
-      sinon.stub(request, 'get').yields(null, { statusCode: 200 }, null);
+      vi.spyOn(request, 'get').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, null); });
       client.eurekaRequest({}, (error) => {
         expect(overrides.requestMiddleware).to.be.calledOnce;
         expect(error).to.be.an('error');
@@ -1090,11 +1082,11 @@ describe('Eureka client', () => {
     });
     it('should check the returnType of requestMiddleware', () => {
       const overrides = {
-        requestMiddleware: sinon.spy((opts, done) => done('foo')),
+        requestMiddleware: vi.fn((opts, done) => done('foo')),
       };
       const config = makeConfig(overrides);
       const client = new Eureka(config);
-      sinon.stub(request, 'get').yields(null, { statusCode: 200 }, null);
+      vi.spyOn(request, 'get').mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, null); });
       client.eurekaRequest({}, (error) => {
         expect(error).to.be.an('error');
         expect(error.message).to.equal('requestMiddleware did not return an object');
@@ -1113,14 +1105,14 @@ describe('Eureka client', () => {
       };
       const config = makeConfig(overrides);
       const client = new Eureka(config);
-      const requestStub = sinon.stub(request, 'get');
-      requestStub.onCall(0).yields(null, { statusCode: 500 }, null);
-      requestStub.onCall(1).yields(null, { statusCode: 200 }, null);
+      const requestStub = vi.spyOn(request, 'get');
+      requestStub.onCall(0).mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 500 }, null); });
+      requestStub.onCall(1).mockImplementation((...args) => { const cb = args[args.length - 1]; cb(null, { statusCode: 200 }, null); });
       client.eurekaRequest({ uri: '/path' }, (error) => {
         expect(error).to.be.null;
-        expect(requestStub).to.be.calledTwice;
-        expect(requestStub.args[0][0]).to.have.property('baseUrl', 'http://serverA');
-        expect(requestStub.args[1][0]).to.have.property('baseUrl', 'http://serverB');
+        expect(requestStub).toHaveBeenCalledTimes(2);
+        expect(requestStub.mock.calls[0][0]).to.have.property('baseUrl', 'http://serverA');
+        expect(requestStub.mock.calls[1][0]).to.have.property('baseUrl', 'http://serverB');
         done();
       });
     });

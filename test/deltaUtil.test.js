@@ -1,28 +1,32 @@
-import chai from 'chai';
-const { expect } = chai;
+import { describe, it, expect } from 'vitest';
 import { arrayOrObj, findInstance, normalizeDelta } from '../src/deltaUtils.js';
 
 describe('deltaUtils', () => {
   describe('arrayOrObj', () => {
     it('should return same array if passed an array', () => {
       const arr = ['foo'];
-      expect(arrayOrObj(arr)).to.equal(arr);
+      expect(arrayOrObj(arr)).toBe(arr);
+    });
+
+    it('should wrap object in array if passed an object', () => {
+      const obj = { foo: 'bar' };
+      expect(arrayOrObj(obj)[0]).toBe(obj);
     });
     it('should return an array containing obj', () => {
       const obj = {};
-      expect(arrayOrObj(obj)[0]).to.equal(obj);
+      expect(arrayOrObj(obj)[0]).toBe(obj);
     });
   });
   describe('findInstance', () => {
     it('should return true if objects match', () => {
       const obj1 = { hostName: 'foo', port: { $: '6969' } };
       const obj2 = { hostName: 'foo', port: { $: '6969' } };
-      expect(findInstance(obj1)(obj2)).to.equal(true);
+      expect(findInstance(obj1)(obj2)).toBe(true);
     });
     it('should return false if objects do not match', () => {
       const obj1 = { hostName: 'foo', port: { $: '6969' } };
       const obj2 = { hostName: 'bar', port: { $: '1111' } };
-      expect(findInstance(obj1)(obj2)).to.equal(false);
+      expect(findInstance(obj1)(obj2)).toBe(false);
     });
   });
   describe('normalizeDelta', () => {
@@ -33,8 +37,8 @@ describe('deltaUtils', () => {
         },
       };
       const normalized = normalizeDelta(delta);
-      expect(normalized).to.be.an('array');
-      expect(normalized[0].instance).to.be.an('array');
+      expect(Array.isArray(normalized)).toBe(true);
+      expect(Array.isArray(normalized[0].instance)).toBe(true);
     });
   });
 });
