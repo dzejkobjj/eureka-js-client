@@ -1,5 +1,4 @@
-import chai from 'chai';
-const { expect } = chai;
+import { expect } from 'chai'
 
 import EurekaClient from '../src/EurekaClient.js';
 import EurekaDefault, { Eureka as EurekaNamed } from '../src/index.js';

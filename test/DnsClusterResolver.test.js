@@ -1,14 +1,13 @@
 /* eslint-disable no-unused-expressions */
 import sinon from 'sinon';
-import chai from 'chai';
-const { expect } = chai;
+import { use, expect } from 'chai'
 import sinonChai from 'sinon-chai';
 import dns from 'dns';
 import merge from 'lodash/merge.js';
 
 import DnsClusterResolver from '../src/DnsClusterResolver.js';
 
-chai.use(sinonChai);
+use(sinonChai);
 
 function makeConfig(overrides = {}) {
   const config = {

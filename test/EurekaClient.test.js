@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-expressions, max-len */
 import sinon from 'sinon';
-import chai from 'chai';
-const { expect } = chai;
+import { use, expect } from 'chai'
 import sinonChai from 'sinon-chai';
 import request from 'request';
 import { EventEmitter } from 'events';
@@ -16,7 +15,7 @@ import DnsClusterResolver from '../src/DnsClusterResolver.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-chai.use(sinonChai);
+use(sinonChai);
 
 function makeConfig(overrides = {}) {
   const config = {
@@ -786,7 +785,8 @@ describe('Eureka client', () => {
       const registryCb = sinon.spy();
       client.fetchRegistry(registryCb);
 
-      expect(registryCb).to.have.been.calledWith(new SyntaxError());
+      const error = registryCb.firstCall.firstArg;
+      expect(error.message).to.be.equal("Expected property name or '}' in JSON at position 2 (line 1 column 3)");
     });
 
     it('should throw error on invalid JSON for delta request', () => {
@@ -796,7 +796,8 @@ describe('Eureka client', () => {
       client.hasFullRegistry = true;
       client.fetchRegistry(registryCb);
 
-      expect(registryCb).to.have.been.calledWith(new SyntaxError());
+      const error = registryCb.firstCall.firstArg;
+      expect(error.message).to.be.equal("Expected property name or '}' in JSON at position 2 (line 1 column 3)");
     });
   });
 
@@ -1034,28 +1035,28 @@ describe('Eureka client', () => {
 
     it('should update hosts with AWS metadata local IP if useLocalMetadata === true' +
       ' and preferIpAddress === true', () => {
-      // Setup
-      config = {
-        instance: instanceConfig,
-        eureka: { host: '127.0.0.1', port: 9999, useLocalMetadata: true, preferIpAddress: true },
-      };
-      client = new Eureka(config);
-      metadataSpy = sinon.spy();
+        // Setup
+        config = {
+          instance: instanceConfig,
+          eureka: { host: '127.0.0.1', port: 9999, useLocalMetadata: true, preferIpAddress: true },
+        };
+        client = new Eureka(config);
+        metadataSpy = sinon.spy();
 
-      sinon.stub(client.metadataClient, 'fetchMetadata').yields(awsMetadata);
+        sinon.stub(client.metadataClient, 'fetchMetadata').yields(awsMetadata);
 
-      // Act
-      client.addInstanceMetadata(metadataSpy);
-      expect(client.config.instance.hostName).to.equal('10.0.1.1');
-      expect(client.config.instance.ipAddr).to.equal('10.0.1.1');
-      expect(client.config.instance.statusPageUrl).to.equal('http://10.0.1.1:8080/info');
-      expect(client.config.instance.healthCheckUrl).to.equal('http://10.0.1.1:8077/healthcheck');
-      expect(client.config.instance.homePageUrl).to.equal('http://10.0.1.1:8080/');
-    });
+        // Act
+        client.addInstanceMetadata(metadataSpy);
+        expect(client.config.instance.hostName).to.equal('10.0.1.1');
+        expect(client.config.instance.ipAddr).to.equal('10.0.1.1');
+        expect(client.config.instance.statusPageUrl).to.equal('http://10.0.1.1:8080/info');
+        expect(client.config.instance.healthCheckUrl).to.equal('http://10.0.1.1:8077/healthcheck');
+        expect(client.config.instance.homePageUrl).to.equal('http://10.0.1.1:8080/');
+      });
   });
 
   describe('eurekaRequest()', () => {
-    beforeEach(() => {});
+    beforeEach(() => { });
 
     afterEach(() => {
       if (request.get.restore) request.get.restore();

@@ -1,11 +1,10 @@
 import sinon from 'sinon';
-import chai from 'chai';
-const { expect } = chai;
+import { use, expect } from 'chai'
 import sinonChai from 'sinon-chai';
 import request from 'request';
 import AwsMetadata from '../src/AwsMetadata.js';
 
-chai.use(sinonChai);
+use(sinonChai);
 
 describe('AWS Metadata client', () => {
   describe('fetchMetadata()', () => {
