@@ -29,8 +29,8 @@
   },
   "homepage": "https://github.com/jquatier/eureka-js-client",
   "dependencies": {
-    "async": "^2.0.1",
-    "js-yaml": "^3.3.1",
+    "async": "^3.2.6",
+    "js-yaml": "^4.1.0",
     "lodash": "^4.13.1",
     "request": "^2.83.0"
   },
