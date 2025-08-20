@@ -1,16 +1,12 @@
-import gulp from 'gulp';
-import babel from 'gulp-babel';
-import mocha from 'gulp-mocha';
-import eslint from 'gulp-eslint';
-import { Instrumenter } from 'babel-istanbul';
-import istanbul from 'gulp-istanbul';
-import env from 'gulp-env';
-import request from 'request';
-import { spawn, exec } from 'child_process';
+const gulp = require('gulp');
+const mocha = require('gulp-mocha');
+const eslint = require('gulp-eslint');
+const env = require('gulp-env');
+const request = require('request');
+const { spawn, exec } = require('child_process');
 
 gulp.task('build', () => (
   gulp.src('src/**/*.js')
-    .pipe(babel())
     .pipe(gulp.dest('lib'))
 ));
 
@@ -21,25 +17,15 @@ gulp.task('lint', () => (
     .pipe(eslint.failOnError())
 ));
 
-gulp.task('mocha', (cb) => {
+gulp.task('mocha', () => {
   const envs = env.set({
     NODE_ENV: 'test',
   });
 
-  return gulp.src('src/**/*.js')
+  return gulp.src(['test/**/*.js', '!test/integration.test.js'])
     .pipe(envs)
-    .pipe(istanbul({
-      instrumenter: Instrumenter,
-    })) // Covering files
-    .pipe(istanbul.hookRequire()) // Force `require` to return covered files
-    .on('finish', () => {
-      gulp.src(['test/**/*.js', '!test/integration.test.js'])
-        .pipe(mocha())
-        .pipe(istanbul.writeReports())
-        .pipe(istanbul.enforceThresholds({ thresholds: { global: 0 } }))
-        .pipe(envs.reset)
-        .on('end', cb);
-    });
+    .pipe(mocha())
+    .pipe(envs.reset);
 });
 
 const EUREKA_INIT_TIMEOUT = 60000;
@@ -87,15 +73,15 @@ gulp.task('docker:run', (cb) => {
   });
 });
 
-gulp.task('test:integration', ['docker:run'], () => (
+gulp.task('test:integration', gulp.series('docker:run', () => (
   gulp.src('test/integration.test.js')
     .pipe(mocha({ timeout: 120000 }))
-));
+)));
 
-gulp.task('test', ['lint', 'mocha']);
+gulp.task('test', gulp.parallel('lint', 'mocha'));
 
 gulp.task('test:watch', () => (
-  gulp.watch(['src/**/*.js', 'test/**/*.test.js'], ['test'])
+  gulp.watch(['src/**/*.js', 'test/**/*.test.js'], gulp.series('test'))
 ));
 
-gulp.task('default', ['build']);
+gulp.task('default', gulp.series('build'));

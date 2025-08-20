@@ -1,5 +1,6 @@
-import { expect } from 'chai';
-import { arrayOrObj, findInstance, normalizeDelta } from '../src/deltaUtils';
+import chai from 'chai';
+const { expect } = chai;
+import { arrayOrObj, findInstance, normalizeDelta } from '../src/deltaUtils.js';
 
 describe('deltaUtils', () => {
   describe('arrayOrObj', () => {

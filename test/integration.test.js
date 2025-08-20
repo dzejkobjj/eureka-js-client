@@ -1,5 +1,6 @@
-import Eureka from '../src/index';
-import { expect } from 'chai';
+import Eureka from '../src/index.js';
+import chai from 'chai';
+const { expect } = chai;
 
 describe('Integration Test', () => {
   const config = {

@@ -1,10 +1,11 @@
-import { expect } from 'chai';
+import chai from 'chai';
+const { expect } = chai;
 
-import EurekaClient from '../src/EurekaClient';
-import EurekaDefault, { Eureka as EurekaNamed } from '../src/index';
+import EurekaClient from '../src/EurekaClient.js';
+import EurekaDefault, { Eureka as EurekaNamed } from '../src/index.js';
 
 // Compatibility with older node versions:
-const EurekaCommonjs = require('../src/index').Eureka;
+// const EurekaCommonjs = require('../src/index').Eureka; // Not supported in ES modules
 
 describe('index', () => {
   it('should export both a default and a named', () => {
@@ -12,7 +13,5 @@ describe('index', () => {
     expect(EurekaDefault).to.equal(EurekaNamed);
   });
 
-  it('should export correctly for ', () => {
-    expect(EurekaCommonjs).to.equal(EurekaDefault);
-  });
+  // Note: CommonJS compatibility test removed when migrating to ES modules
 });

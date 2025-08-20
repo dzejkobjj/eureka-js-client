@@ -1,8 +1,9 @@
 import sinon from 'sinon';
-import chai, { expect } from 'chai';
+import chai from 'chai';
+const { expect } = chai;
 import sinonChai from 'sinon-chai';
 import request from 'request';
-import AwsMetadata from '../src/AwsMetadata';
+import AwsMetadata from '../src/AwsMetadata.js';
 
 chai.use(sinonChai);
 

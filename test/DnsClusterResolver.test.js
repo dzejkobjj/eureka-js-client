@@ -1,11 +1,12 @@
 /* eslint-disable no-unused-expressions */
 import sinon from 'sinon';
-import chai, { expect } from 'chai';
+import chai from 'chai';
+const { expect } = chai;
 import sinonChai from 'sinon-chai';
 import dns from 'dns';
-import merge from 'lodash/merge';
+import merge from 'lodash/merge.js';
 
-import DnsClusterResolver from '../src/DnsClusterResolver';
+import DnsClusterResolver from '../src/DnsClusterResolver.js';
 
 chai.use(sinonChai);
 

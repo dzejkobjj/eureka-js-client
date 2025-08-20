@@ -1,8 +1,9 @@
 /* eslint-disable no-unused-expressions */
-import { expect } from 'chai';
-import merge from 'lodash/merge';
+import chai from 'chai';
+const { expect } = chai;
+import merge from 'lodash/merge.js';
 
-import ConfigClusterResolver from '../src/ConfigClusterResolver';
+import ConfigClusterResolver from '../src/ConfigClusterResolver.js';
 
 function makeConfig(overrides = {}) {
   const config = {

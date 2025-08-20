@@ -1,17 +1,18 @@
 import request from 'request';
 import fs from 'fs';
 import yaml from 'js-yaml';
-import { merge, findIndex } from 'lodash';
-import { normalizeDelta, findInstance } from './deltaUtils';
+import merge from 'lodash/merge.js';
+import findIndex from 'lodash/findIndex.js';
+import { normalizeDelta, findInstance } from './deltaUtils.js';
 import path from 'path';
 import { series, waterfall } from 'async';
 import { EventEmitter } from 'events';
 
-import AwsMetadata from './AwsMetadata';
-import ConfigClusterResolver from './ConfigClusterResolver';
-import DnsClusterResolver from './DnsClusterResolver';
-import Logger from './Logger';
-import defaultConfig from './defaultConfig';
+import AwsMetadata from './AwsMetadata.js';
+import ConfigClusterResolver from './ConfigClusterResolver.js';
+import DnsClusterResolver from './DnsClusterResolver.js';
+import Logger from './Logger.js';
+import defaultConfig from './defaultConfig.js';
 
 function noop() {}
 
