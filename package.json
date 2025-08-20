@@ -8,9 +8,9 @@
     "node": ">=14.0.0"
   },
   "scripts": {
-    "prepublishOnly": "gulp --gulpfile gulpfile.cjs",
-    "test": "gulp --gulpfile gulpfile.cjs test",
-    "integration": "gulp --gulpfile gulpfile.cjs test:integration"
+    "prepublishOnly": "gulp",
+    "test": "gulp test",
+    "integration": "gulp test:integration"
   },
   "repository": {
     "type": "git",
