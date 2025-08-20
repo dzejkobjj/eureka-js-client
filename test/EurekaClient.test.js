@@ -5,11 +5,16 @@ const { expect } = chai;
 import sinonChai from 'sinon-chai';
 import request from 'request';
 import { EventEmitter } from 'events';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import merge from 'lodash/merge.js';
 
 import Eureka from '../src/EurekaClient.js';
 import DnsClusterResolver from '../src/DnsClusterResolver.js';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 chai.use(sinonChai);
 
