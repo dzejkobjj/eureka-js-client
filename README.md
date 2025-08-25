@@ -1,3 +1,22 @@
+# Boeing fork of eureka-js-client
+
+Original repo (https://github.com/jquatier/eureka-js-client) is not maintained anymore.
+As it is used in Boeing internal eureka library (https://git.web.boeing.com/digitalfactory/starters/eureka-server-starter) decision has been made to fork it and upgrade it.
+
+## TODO:
+- [x] Update codebase to use ES6 standard (Node 14+ required)
+- [x] Remove Babel
+- [x] Remove Travis CI
+- [x] Updated all dependencies
+- [ ] Replace `request` with something modern (ideally fetch to reduce number of dependencies)
+- [ ] Replace `chai`, `sinon` and `mocha` with `vitest` (again, one dependency instead of three)
+- [ ] Fix integration tests (docker image used in integration tests doesnt work with new docker versions)
+- [ ] Remove `gulp`
+- [ ] Add CI/CD that will build and publish package to SRES
+
+
+Original README content is below.
+
 # eureka-js-client
 [![npm version](https://badge.fury.io/js/eureka-js-client.svg)](http://badge.fury.io/js/eureka-js-client)
 
