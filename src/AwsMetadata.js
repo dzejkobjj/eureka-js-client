@@ -1,4 +1,4 @@
-import request from 'request';
+import axios from 'axios';
 import async from 'async';
 import Logger from './Logger.js';
 
@@ -63,24 +63,39 @@ export default class AwsMetadata {
   }
 
   lookupMetadataKey(key, callback) {
-    request.get({
-      url: `http://${this.host}/latest/meta-data/${key}`,
-    }, (error, response, body) => {
-      if (error) {
-        this.logger.error('Error requesting metadata key', error);
-      }
-      callback(null, (error || response.statusCode !== 200) ? null : body);
+    axios.get(`http://${this.host}/latest/meta-data/${key}`, {
+      validateStatus: () => true, // Don't throw for HTTP error status codes
+      responseType: 'text'
+    })
+    .then(response => {
+      callback(null, response.status !== 200 ? null : response.data);
+    })
+    .catch(error => {
+      this.logger.error('Error requesting metadata key', error);
+      callback(null, null);
     });
   }
 
   lookupInstanceIdentity(callback) {
-    request.get({
-      url: `http://${this.host}/latest/dynamic/instance-identity/document`,
-    }, (error, response, body) => {
-      if (error) {
-        this.logger.error('Error requesting instance identity document', error);
+    axios.get(`http://${this.host}/latest/dynamic/instance-identity/document`, {
+      validateStatus: () => true, // Don't throw for HTTP error status codes
+      responseType: 'text'
+    })
+    .then(response => {
+      if (response.status !== 200) {
+        callback(null, null);
+      } else {
+        try {
+          callback(null, JSON.parse(response.data));
+        } catch (parseError) {
+          this.logger.error('Error parsing instance identity document', parseError);
+          callback(null, null);
+        }
       }
-      callback(null, (error || response.statusCode !== 200) ? null : JSON.parse(body));
+    })
+    .catch(error => {
+      this.logger.error('Error requesting instance identity document', error);
+      callback(null, null);
     });
   }
 }

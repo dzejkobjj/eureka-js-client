@@ -1,4 +1,4 @@
-import request from 'request';
+import axios from 'axios';
 import fs from 'fs';
 import yaml from 'js-yaml';
 import merge from 'lodash/merge.js';
@@ -216,7 +216,7 @@ export default class Eureka extends EventEmitter {
       body: { instance: this.config.instance },
     }, (error, response, body) => {
       clearTimeout(connectionTimeout);
-      if (!error && response.statusCode === 204) {
+      if (!error && response.status === 204) {
         this.logger.info(
           'registered with eureka: ',
           `${this.config.instance.app}/${this.instanceId}`
@@ -227,8 +227,9 @@ export default class Eureka extends EventEmitter {
         this.logger.warn('Error registering with eureka client.', error);
         return callback(error);
       }
+      console.error(error)
       return callback(
-        new Error(`eureka registration FAILED: status: ${response.statusCode} body: ${body}`)
+        new Error(`eureka registration FAILED: status: ${response.status} body: ${body}`)
       );
     });
   }
@@ -241,7 +242,7 @@ export default class Eureka extends EventEmitter {
       method: 'DELETE',
       uri: `${this.config.instance.app}/${this.instanceId}`,
     }, (error, response, body) => {
-      if (!error && response.statusCode === 200) {
+      if (!error && response.status === 200) {
         this.logger.info(
           `de-registered with eureka: ${this.config.instance.app}/${this.instanceId}`
         );
@@ -251,8 +252,9 @@ export default class Eureka extends EventEmitter {
         this.logger.warn('Error deregistering with eureka', error);
         return callback(error);
       }
+      console.error(error)
       return callback(
-        new Error(`eureka deregistration FAILED: status: ${response.statusCode} body: ${body}`)
+        new Error(`eureka deregistration FAILED: status: ${response.status} body: ${body}`)
       );
     });
   }
@@ -272,10 +274,10 @@ export default class Eureka extends EventEmitter {
       method: 'PUT',
       uri: `${this.config.instance.app}/${this.instanceId}`,
     }, (error, response, body) => {
-      if (!error && response.statusCode === 200) {
+      if (!error && response.status === 200) {
         this.logger.debug('eureka heartbeat success');
         this.emit('heartbeat');
-      } else if (!error && response.statusCode === 404) {
+      } else if (!error && response.status === 404) {
         this.logger.warn('eureka heartbeat FAILED, Re-registering app');
         this.register();
       } else {
@@ -284,7 +286,7 @@ export default class Eureka extends EventEmitter {
         }
         this.logger.warn(
           'eureka heartbeat FAILED, will retry.' +
-          `statusCode: ${response ? response.statusCode : 'unknown'}` +
+          `statusCode: ${response ? response.status : 'unknown'}` +
           `body: ${body} ${error | ''} `
         );
       }
@@ -352,7 +354,7 @@ export default class Eureka extends EventEmitter {
         Accept: 'application/json',
       },
     }, (error, response, body) => {
-      if (!error && response.statusCode === 200) {
+      if (!error && response.status === 200) {
         this.logger.debug('retrieved full registry successfully');
         try {
           this.transformRegistry(JSON.parse(body));
@@ -380,7 +382,7 @@ export default class Eureka extends EventEmitter {
         Accept: 'application/json',
       },
     }, (error, response, body) => {
-      if (!error && response.statusCode === 200) {
+      if (!error && response.status === 200) {
         this.logger.debug('retrieved delta successfully');
         let applications;
         try {
@@ -592,10 +594,39 @@ export default class Eureka extends EventEmitter {
       Perform Request
        */
       (requestOpts, done) => {
-        const method = requestOpts.method ? requestOpts.method.toLowerCase() : 'get';
-        request[method](requestOpts, (error, response, body) => {
-          done(error, response, body, requestOpts);
-        });
+        // Convert request options to axios format
+        const axiosConfig = {
+          method: requestOpts.method ? requestOpts.method.toLowerCase() : 'get',
+          url: requestOpts.uri || requestOpts.url || '',
+          baseURL: requestOpts.baseUrl,
+          data: requestOpts.body,
+          headers: requestOpts.headers,
+          timeout: requestOpts.timeout,
+          responseType: 'text', // Keep response as text to match request behavior
+          validateStatus: () => true, // Don't throw for HTTP error status codes
+        };
+
+        if (requestOpts.gzip !== undefined) {
+          axiosConfig.decompress = requestOpts.gzip;
+        }
+
+        if (requestOpts.json && requestOpts.method && requestOpts.method.toUpperCase() !== 'GET') {
+          axiosConfig.headers = axiosConfig.headers || {};
+          axiosConfig.headers['Content-Type'] = 'application/json';
+        }
+        axios(axiosConfig)
+          .then(response => {
+            done(null, response, response.data, requestOpts);
+          })
+          .catch(error => {
+            if (error.response) {
+              // The request was made and the server responded with a status code
+              done(null, error.response, error.response.data, requestOpts);
+            } else {
+              // Something happened in setting up the request that triggered an Error
+              done(error, null, null, requestOpts);
+            }
+          });
       },
     ],
       /*

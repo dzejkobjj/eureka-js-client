@@ -33,8 +33,7 @@
     "async": "^3.2.6",
     "axios": "^1.11.0",
     "js-yaml": "^4.1.0",
-    "lodash": "^4.13.1",
-    "request": "^2.88.2"
+    "lodash": "^4.13.1"
   },
   "devDependencies": {
     "eslint": "^9.33.0",

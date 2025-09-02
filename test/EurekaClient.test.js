@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-expressions, max-len */
 import sinon from 'sinon';
-import request from 'request';
+import axios from 'axios';
 import { EventEmitter } from 'events';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
