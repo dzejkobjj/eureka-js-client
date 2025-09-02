@@ -7,9 +7,13 @@ describe('Integration Test', () => {
       app: 'jqservice',
       hostName: 'localhost',
       ipAddr: '127.0.0.1',
-      port: 8080,
+      port: {
+        $: 8080,
+        '@enabled': true
+      },
       vipAddress: 'jq.test.something.com',
       dataCenterInfo: {
+        '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
         name: 'MyOwn',
       },
     },
@@ -23,7 +27,7 @@ describe('Integration Test', () => {
       useDns: false,
       fetchMetadata: true,
       host: 'localhost',
-      port: 8080,
+      port: 8761,
     },
   };
 
