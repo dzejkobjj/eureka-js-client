@@ -8,12 +8,10 @@
     "node": ">=14.0.0"
   },
   "scripts": {
-    "prepublishOnly": "gulp",
-    "test": "gulp test",
-    "integration": "gulp test:integration",
-    "test:vitest": "vitest run",
+    "lint": "eslint src/**/*.js test/**/*.js",
+    "test": "vitest run",
     "test:watch": "vitest",
-    "test:integration:vitest": "vitest run --config=vitest.integration.config.js"
+    "integration": "vitest run --config=vitest.integration.config.js"
   },
   "repository": {
     "type": "git",
@@ -41,9 +39,6 @@
     "chai": "^5.3.1",
     "eslint": "^9.33.0",
     "eslint-plugin-import": "^2.32.0",
-    "gulp": "^5.0.1",
-    "gulp-env": "^0.4.0",
-    "gulp-eslint": "^6.0.0",
     "sinon": "^21.0.0",
     "sinon-chai": "^4.0.0",
     "vitest": "^2.1.8"
