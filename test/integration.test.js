@@ -32,8 +32,8 @@ describe('Integration Test', () => {
   };
 
   const client = new Eureka(config);
-  before((done) => {
-    client.start(done);
+  before(async () => {
+    await promisify(client.start.bind(client))();
   });
 
   it('should be able to get instance by the app id', () => {
@@ -46,7 +46,7 @@ describe('Integration Test', () => {
     expect(instances.length).to.equal(1);
   });
 
-  after((done) => {
-    client.stop(done);
+  after(async () => {
+    await promisify(client.stop.bind(client))();
   });
 });

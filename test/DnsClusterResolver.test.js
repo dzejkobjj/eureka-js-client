@@ -205,20 +205,19 @@ describe('DNS Cluster Resolver', () => {
       dns.resolveTxt.restore();
     });
 
-    it('should resolve hosts using DNS', (done) => {
+    it('should resolve hosts using DNS', async () => {
       const dnsResolver = new DnsClusterResolver(makeConfig());
       const resolveStub = sinon.stub(dns, 'resolveTxt');
       resolveStub.withArgs('txt.my-region.eureka.mydomain.com').yields(null, [eurekaHosts]);
       resolveStub.withArgs('txt.1a.eureka.mydomain.com').yields(null, [['1.2.3.4']]);
       resolveStub.withArgs('txt.1b.eureka.mydomain.com').yields(null, [['2.2.3.4']]);
       resolveStub.withArgs('txt.1c.eureka.mydomain.com').yields(null, [['3.2.3.4']]);
-      dnsResolver.resolveClusterHosts((err, hosts) => {
-        expect(hosts).to.include.members(['1.2.3.4', '2.2.3.4', '3.2.3.4']);
-        done();
-      });
+
+      const hosts = await promisify(dnsResolver.resolveClusterHosts.bind(dnsResolver))();
+      expect(hosts).to.include.members(['1.2.3.4', '2.2.3.4', '3.2.3.4']);
     });
 
-    it('should resolve hosts using DNS and zone affinity', (done) => {
+    it('should resolve hosts using DNS and zone affinity', async () => {
       const dnsResolver = new DnsClusterResolver(makeConfig({
         eureka: { preferSameZone: true },
       }));
@@ -227,42 +226,37 @@ describe('DNS Cluster Resolver', () => {
       resolveStub.withArgs('txt.1a.eureka.mydomain.com').yields(null, [['1.2.3.4']]);
       resolveStub.withArgs('txt.1b.eureka.mydomain.com').yields(null, [['2.2.3.4']]);
       resolveStub.withArgs('txt.1c.eureka.mydomain.com').yields(null, [['3.2.3.4']]);
-      dnsResolver.resolveClusterHosts((err, hosts) => {
-        expect(hosts[0]).to.equal('2.2.3.4');
-        expect(hosts).to.include.members(['1.2.3.4', '2.2.3.4', '3.2.3.4']);
-        dnsResolver.resolveClusterHosts((error, hostsTwo) => {
-          expect(hostsTwo[0]).to.equal('2.2.3.4');
-          expect(hostsTwo).to.include.members(['1.2.3.4', '2.2.3.4', '3.2.3.4']);
-          done();
-        });
-      });
+
+      const hosts = await promisify(dnsResolver.resolveClusterHosts.bind(dnsResolver))();
+      expect(hosts[0]).to.equal('2.2.3.4');
+      expect(hosts).to.include.members(['1.2.3.4', '2.2.3.4', '3.2.3.4']);
+
+      const hostsTwo = await promisify(dnsResolver.resolveClusterHosts.bind(dnsResolver))();
+      expect(hostsTwo[0]).to.equal('2.2.3.4');
+      expect(hostsTwo).to.include.members(['1.2.3.4', '2.2.3.4', '3.2.3.4']);
     });
 
-    it('should resolve hosts when dataCenterInfo is undefined', (done) => {
-      const config = {
-        instance: {},
+    it('should resolve hosts when dataCenterInfo is undefined', async () => {
+      const config = makeConfig({
+        instance: {
+          dataCenterInfo: undefined,
+        },
         eureka: {
           preferSameZone: true,
-          host: 'eureka.mydomain.com',
-          servicePath: '/eureka/v2/apps/',
-          port: 9999,
-          maxRetries: 0,
-          ec2Region: 'my-region',
         },
-      };
+      });
       const dnsResolver = new DnsClusterResolver(config);
       const resolveStub = sinon.stub(dns, 'resolveTxt');
       resolveStub.withArgs('txt.my-region.eureka.mydomain.com').yields(null, [eurekaHosts]);
       resolveStub.withArgs('txt.1a.eureka.mydomain.com').yields(null, [['1.2.3.4']]);
       resolveStub.withArgs('txt.1b.eureka.mydomain.com').yields(null, [['2.2.3.4']]);
       resolveStub.withArgs('txt.1c.eureka.mydomain.com').yields(null, [['3.2.3.4']]);
-      dnsResolver.resolveClusterHosts((err, hosts) => {
-        expect(hosts).to.include.members(['1.2.3.4', '2.2.3.4', '3.2.3.4']);
-        dnsResolver.resolveClusterHosts((error, hostsTwo) => {
-          expect(hostsTwo).to.include.members(['1.2.3.4', '2.2.3.4', '3.2.3.4']);
-          done();
-        });
-      });
+
+      const hosts = await promisify(dnsResolver.resolveClusterHosts.bind(dnsResolver))();
+      expect(hosts).to.include.members(['1.2.3.4', '2.2.3.4', '3.2.3.4']);
+
+      const hostsTwo = await promisify(dnsResolver.resolveClusterHosts.bind(dnsResolver))();
+      expect(hostsTwo).to.include.members(['1.2.3.4', '2.2.3.4', '3.2.3.4']);
     });
 
     it('should return error when initial DNS lookup fails', () => {
@@ -305,19 +299,23 @@ describe('DNS Cluster Resolver', () => {
       });
     });
 
-    it('should return error when no hosts were found', (done) => {
+    it('should return error when no hosts were found', async () => {
       const dnsResolver = new DnsClusterResolver(makeConfig());
       const resolveStub = sinon.stub(dns, 'resolveTxt');
+
       resolveStub.withArgs('txt.my-region.eureka.mydomain.com').yields(null, [eurekaHosts]);
       resolveStub.withArgs('txt.1a.eureka.mydomain.com').yields(null, []);
       resolveStub.withArgs('txt.1b.eureka.mydomain.com').yields(null, []);
       resolveStub.withArgs('txt.1c.eureka.mydomain.com').yields(null, []);
-      dnsResolver.resolveClusterHosts((err) => {
+
+      try {
+        await promisify(dnsResolver.resolveClusterHosts.bind(dnsResolver))();
+        throw new Error('Expected error to be thrown');
+      } catch (err) {
         expect(err).to.not.equal(undefined);
         expect(err.message).to.equal('Unable to locate any Eureka hosts in any ' +
           'zone via DNS @ txt.my-region.eureka.mydomain.com');
-        done();
-      });
+      }
     });
   });
 });

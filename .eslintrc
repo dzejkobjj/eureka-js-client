@@ -5,6 +5,9 @@
     "node": true,
     "mocha": true
   },
+  "globals": {
+    "promisify": "readonly"
+  },
   "extends": [
     "eslint:recommended"
   ],

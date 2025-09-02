@@ -10,7 +10,10 @@
   "scripts": {
     "prepublishOnly": "gulp",
     "test": "gulp test",
-    "integration": "gulp test:integration"
+    "integration": "gulp test:integration",
+    "test:vitest": "vitest run",
+    "test:watch": "vitest",
+    "test:integration:vitest": "vitest run --config=vitest.integration.config.js"
   },
   "repository": {
     "type": "git",
@@ -41,14 +44,9 @@
     "gulp": "^5.0.1",
     "gulp-env": "^0.4.0",
     "gulp-eslint": "^6.0.0",
-    "gulp-mocha": "^10.0.1",
     "nyc": "^15.1.0",
     "sinon": "^21.0.0",
-    "sinon-chai": "^4.0.0"
-  },
-  "greenkeeper": {
-    "ignore": [
-      "gulp-mocha"
-    ]
+    "sinon-chai": "^4.0.0",
+    "vitest": "^2.1.8"
   }
 }

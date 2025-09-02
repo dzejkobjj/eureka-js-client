@@ -210,7 +210,9 @@ describe('Eureka client', () => {
       registryFetchSpy.restore();
     });
 
-    it('should call register, fetch registry, startHeartbeat and startRegistryFetches', (done) => {
+    it('should call register, fetch registry, startHeartbeat and startRegistryFetches', async () => {
+      config = makeConfig();
+      client = new Eureka(config);
       registerSpy = sinon.stub(client, 'register').callsArg(0);
       fetchRegistrySpy = sinon.stub(client, 'fetchRegistry').callsArg(0);
       heartbeatsSpy = sinon.stub(client, 'startHeartbeats');
@@ -218,17 +220,15 @@ describe('Eureka client', () => {
       const eventSpy = sinon.spy();
       client.on('started', eventSpy);
 
-      client.start(() => {
-        expect(registerSpy).to.have.been.calledOnce;
-        expect(fetchRegistrySpy).to.have.been.calledOnce;
-        expect(heartbeatsSpy).to.have.been.calledOnce;
-        expect(registryFetchSpy).to.have.been.calledOnce;
-        expect(eventSpy).to.have.been.calledOnce;
-        done();
-      });
+      await promisify(client.start.bind(client))();
+      expect(registerSpy).to.have.been.calledOnce;
+      expect(fetchRegistrySpy).to.have.been.calledOnce;
+      expect(heartbeatsSpy).to.have.been.calledOnce;
+      expect(registryFetchSpy).to.have.been.calledOnce;
+      expect(eventSpy).to.have.been.calledOnce;
     });
 
-    it('should call fetch registry and startRegistryFetches when registration disabled', (done) => {
+    it('should call fetch registry and startRegistryFetches when registration disabled', async () => {
       config = makeConfig({
         eureka: {
           registerWithEureka: false,
@@ -243,17 +243,15 @@ describe('Eureka client', () => {
       const eventSpy = sinon.spy();
       client.on('started', eventSpy);
 
-      client.start(() => {
-        expect(registerSpy).to.not.have.been.called;
-        expect(fetchRegistrySpy).to.have.been.calledOnce;
-        expect(heartbeatsSpy).to.not.have.been.called;
-        expect(registryFetchSpy).to.have.been.calledOnce;
-        expect(eventSpy).to.have.been.calledOnce;
-        done();
-      });
+      await promisify(client.start.bind(client))();
+      expect(registerSpy).to.not.have.been.called;
+      expect(fetchRegistrySpy).to.have.been.calledOnce;
+      expect(heartbeatsSpy).to.not.have.been.called;
+      expect(registryFetchSpy).to.have.been.calledOnce;
+      expect(eventSpy).to.have.been.calledOnce;
     });
 
-    it('should return error on start failure', (done) => {
+    it('should return error on start failure', async () => {
       registerSpy = sinon.stub(client, 'register').yields(new Error('fail'));
       fetchRegistrySpy = sinon.stub(client, 'fetchRegistry').callsArg(0);
       heartbeatsSpy = sinon.stub(client, 'startHeartbeats');
@@ -261,11 +259,13 @@ describe('Eureka client', () => {
       const eventSpy = sinon.spy();
       client.on('started', eventSpy);
 
-      client.start((error) => {
+      try {
+        await promisify(client.start.bind(client))();
+        throw new Error('Expected error to be thrown');
+      } catch (error) {
         expect(error).to.match(/fail/);
         expect(eventSpy).to.not.have.been.called;
-        done();
-      });
+      }
     });
   });
 
@@ -1102,7 +1102,7 @@ describe('Eureka client', () => {
       });
     });
 
-    it('should retry next server on request failure', (done) => {
+    it('should retry next server on request failure', async () => {
       const overrides = {
         eureka: {
           serviceUrls: {
@@ -1117,13 +1117,11 @@ describe('Eureka client', () => {
       const requestStub = sinon.stub(request, 'get');
       requestStub.onCall(0).yields(null, { statusCode: 500 }, null);
       requestStub.onCall(1).yields(null, { statusCode: 200 }, null);
-      client.eurekaRequest({ uri: '/path' }, (error) => {
-        expect(error).to.be.null;
-        expect(requestStub).to.be.calledTwice;
-        expect(requestStub.args[0][0]).to.have.property('baseUrl', 'http://serverA');
-        expect(requestStub.args[1][0]).to.have.property('baseUrl', 'http://serverB');
-        done();
-      });
+
+      await promisify((cb) => client.eurekaRequest({ uri: '/path' }, cb))();
+      expect(requestStub).to.be.calledTwice;
+      expect(requestStub.args[0][0]).to.have.property('baseUrl', 'http://serverA');
+      expect(requestStub.args[1][0]).to.have.property('baseUrl', 'http://serverB');
     });
   });
 
