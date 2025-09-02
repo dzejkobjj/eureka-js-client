@@ -1,13 +1,9 @@
 /* eslint-disable no-unused-expressions */
 import sinon from 'sinon';
-import { use, expect } from 'chai'
-import sinonChai from 'sinon-chai';
 import dns from 'dns';
 import merge from 'lodash/merge.js';
 
 import DnsClusterResolver from '../src/DnsClusterResolver.js';
-
-use(sinonChai);
 
 function makeConfig(overrides = {}) {
   const config = {
@@ -56,9 +52,9 @@ describe('DNS Cluster Resolver', () => {
       }));
       refreshStub = sinon.stub(dnsResolver, 'refreshCurrentCluster');
       clock.tick(300000);
-      expect(refreshStub).to.have.been.calledOnce;
+      expect(refreshStub.callCount).toBe(1);
       clock.tick(300000);
-      expect(refreshStub).to.have.been.calledTwice;
+      expect(refreshStub.callCount).toBe(2);
       clock.restore();
     });
 
@@ -69,9 +65,9 @@ describe('DNS Cluster Resolver', () => {
       refreshStub = sinon.stub(dnsResolver, 'refreshCurrentCluster');
       refreshStub.yields(new Error('fail'));
       clock.tick(300000);
-      expect(refreshStub).to.have.been.calledOnce;
+      expect(refreshStub.callCount).toBe(1);
       clock.tick(300000);
-      expect(refreshStub).to.have.been.calledTwice;
+      expect(refreshStub.callCount).toBe(2);
       clock.restore();
     });
   });
@@ -271,11 +267,11 @@ describe('DNS Cluster Resolver', () => {
       }
 
       expect(shouldNotThrow).to.not.throw();
-      expect(dns.resolveTxt).to.have.been.calledWithMatch('txt.my-region.eureka.mydomain.com');
-      expect(resolveCb).to.have.been.calledWithMatch({
+      expect(resolveStub.calledWithMatch('txt.my-region.eureka.mydomain.com')).toBe(true);
+      expect(resolveCb.calledWithMatch({
         message: 'Error resolving eureka cluster ' +
           'for region [my-region] using DNS: [Error: dns error]',
-      });
+      })).toBe(true);
     });
 
     it('should return error when DNS lookup fails for an individual zone', () => {
@@ -294,9 +290,9 @@ describe('DNS Cluster Resolver', () => {
       }
 
       expect(shouldNotThrow).to.not.throw();
-      expect(resolveCb).to.have.been.calledWithMatch({
+      expect(resolveCb.calledWithMatch({
         message: 'Error resolving cluster zone txt.1b.eureka.mydomain.com: [Error: dns error]',
-      });
+      })).toBe(true);
     });
 
     it('should return error when no hosts were found', async () => {

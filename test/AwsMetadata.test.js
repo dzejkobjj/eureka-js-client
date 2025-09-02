@@ -1,10 +1,6 @@
 import sinon from 'sinon';
-import { use, expect } from 'chai'
-import sinonChai from 'sinon-chai';
 import request from 'request';
 import AwsMetadata from '../src/AwsMetadata.js';
-
-use(sinonChai);
 
 describe('AWS Metadata client', () => {
   describe('fetchMetadata()', () => {
@@ -67,9 +63,9 @@ describe('AWS Metadata client', () => {
       const fetchCb = sinon.spy();
       client.fetchMetadata(fetchCb);
 
-      expect(request.get).to.have.been.callCount(11);
+      expect(request.get.callCount).toBe(11);
 
-      expect(fetchCb).to.have.been.calledWithMatch({
+      expect(fetchCb.calledWithMatch({
         accountId: '123456',
         'ami-id': 'ami-123',
         'availability-zone': 'fake-1',
@@ -81,7 +77,7 @@ describe('AWS Metadata client', () => {
         'public-hostname': 'ec2-127-0-0-1',
         'public-ipv4': '2.2.2.2',
         'vpc-id': 'vpc123',
-      });
+      })).toBe(true);
     });
 
     it('should call metadata URIs and filter out null and undefined values', () => {
@@ -135,8 +131,8 @@ describe('AWS Metadata client', () => {
       const fetchCb = sinon.spy();
       client.fetchMetadata(fetchCb);
 
-      expect(request.get).to.have.been.callCount(11);
-      expect(fetchCb).to.have.been.calledWithMatch({
+      expect(request.get.callCount).toBe(11);
+      expect(fetchCb.calledWithMatch({
         accountId: '123456',
         'ami-id': 'ami-123',
         'availability-zone': 'fake-1',
@@ -146,8 +142,8 @@ describe('AWS Metadata client', () => {
         'local-ipv4': '1.1.1.1',
         mac: 'AB:CD:EF:GH:IJ',
         'vpc-id': 'vpc123',
-      });
-      expect(fetchCb.firstCall.args[0]).to.have.all.keys(['ami-id',
+      })).toBe(true);
+      expect(Object.keys(fetchCb.firstCall.args[0])).toEqual(['ami-id',
         'instance-id',
         'instance-type',
         'local-ipv4',
@@ -208,8 +204,8 @@ describe('AWS Metadata client', () => {
       const fetchCb = sinon.spy();
       client.fetchMetadata(fetchCb);
 
-      expect(request.get).to.have.been.callCount(11);
-      expect(fetchCb).to.have.been.calledWithMatch({
+      expect(request.get.callCount).toBe(11);
+      expect(fetchCb.calledWithMatch({
         'ami-id': 'ami-123',
         'availability-zone': 'fake-1',
         'instance-id': 'i123',
@@ -218,8 +214,8 @@ describe('AWS Metadata client', () => {
         'local-ipv4': '1.1.1.1',
         mac: 'AB:CD:EF:GH:IJ',
         'vpc-id': 'vpc123',
-      });
-      expect(fetchCb.firstCall.args[0]).to.have.all.keys(['ami-id',
+      })).toBe(true);
+      expect(Object.keys(fetchCb.firstCall.args[0])).toEqual(['ami-id',
         'instance-id',
         'instance-type',
         'local-ipv4',

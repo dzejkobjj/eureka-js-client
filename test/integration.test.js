@@ -1,5 +1,4 @@
 import Eureka from '../src/index.js';
-import { expect } from 'chai'
 
 describe('Integration Test', () => {
   const config = {
@@ -38,12 +37,12 @@ describe('Integration Test', () => {
 
   it('should be able to get instance by the app id', () => {
     const instances = client.getInstancesByAppId(config.instance.app);
-    expect(instances.length).to.equal(1);
+    expect(instances.length).toBe(1);
   });
 
   it('should be able to get instance by the vipAddress', () => {
     const instances = client.getInstancesByVipAddress(config.instance.vipAddress);
-    expect(instances.length).to.equal(1);
+    expect(instances.length).toBe(1);
   });
 
   after(async () => {

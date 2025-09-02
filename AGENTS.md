@@ -25,3 +25,4 @@
 - **Formatting**: Follow eslint:recommended rules with import plugin
 - **Dependencies**: lodash functions imported individually (e.g., `import merge from 'lodash/merge.js'`)
 - **Config**: YAML configuration files supported via js-yaml
+- **Testing**: Use vitest assertions (expect().toBe(), expect().toEqual(), etc.) instead of chai
