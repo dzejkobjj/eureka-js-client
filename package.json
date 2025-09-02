@@ -31,14 +31,15 @@
   "homepage": "https://github.com/jquatier/eureka-js-client",
   "dependencies": {
     "async": "^3.2.6",
+    "axios": "^1.11.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.13.1",
-    "request": "^2.83.0"
+    "request": "^2.88.2"
   },
   "devDependencies": {
     "eslint": "^9.33.0",
     "eslint-plugin-import": "^2.32.0",
     "sinon": "^21.0.0",
-    "vitest": "^2.1.8"
+    "vitest": "^3.2.4"
   }
 }
